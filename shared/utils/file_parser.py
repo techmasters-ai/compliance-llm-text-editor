@@ -1,1 +1,0 @@
-def extract_text(content): return content.decode('utf-8')
