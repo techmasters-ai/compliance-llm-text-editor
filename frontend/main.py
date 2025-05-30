@@ -7,7 +7,7 @@ import docx
 import pandas as pd
 import PyPDF2
 
-API_BASE = os.getenv("API_BASE", "http://localhost:8000")
+API_BASE = os.getenv("API_BASE")
 
 st.set_page_config(layout="wide")
 st.title("🛡️ Document Compliance Checker")

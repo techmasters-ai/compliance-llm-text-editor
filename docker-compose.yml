@@ -7,18 +7,32 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - compliance_app
     ports:
       - "${DB_PORT}:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   api:
     build:
       context: ./backend
     environment:
       - DATABASE_URL=${DATABASE_URL}
+      - OWUI_BASE_URL=${OWUI_BASE_URL}
+      - OWUI_API_KEY=${OWUI_API_KEY}
+      - MODEL_NAME=${MODEL_NAME}
     ports:
       - "${BACKEND_PORT}:8000"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+    networks:
+      - compliance_app
+      - dev_network
 
   frontend:
     build:
@@ -28,9 +42,15 @@ services:
       - FRONTEND_PORT=${FRONTEND_PORT}
     ports:
       - "${FRONTEND_PORT}:8501"
+    networks:
+      - compliance_app
     depends_on:
       - api
 
 volumes:
   postgres_data:
 
+networks:
+  compliance_app:
+  dev_network:
+    external: true
