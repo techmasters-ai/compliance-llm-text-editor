@@ -42,3 +42,6 @@ class LLMQueryRequest(BaseModel):
 
 class LLMQueryResponse(BaseModel):
     response: str
+    
+class FixSuggestionsRequest(BaseModel):
+    violation_ids: list[int]

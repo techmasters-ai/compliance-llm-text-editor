@@ -100,12 +100,12 @@ def test_check_violation(rule_id, paragraph_id):
     print('')
     return result["violation_id"]
 
-# ---------- 9. Suggest Fix ----------
-def test_suggest_fix(violation_id):
-    response = requests.post(f"{BASE_URL}/suggest_fix", params={"violation_id": violation_id})
+# ---------- 9. Suggest Fix for Multiple Violations ----------
+def test_suggest_fix(violation_ids):
+    response = requests.post(f"{BASE_URL}/suggest_fix", json={"violation_ids": violation_ids})
     response.raise_for_status()
     fix = response.json()["suggested_fix"]
-    print(f"✅ Suggested Fix: {fix}")
+    print(f"✅ Suggested Fix for Violations {violation_ids}:\n   {fix}")
     print('')
     return fix
 
@@ -149,17 +149,28 @@ def run_all_tests():
 
     rules = test_generate_rules()
     rule_records = test_get_all_rules()
-    rule_id = rule_records[0]["id"]
 
-    test_get_rule_by_id(rule_id)
-    test_update_rule_by_id(rule_id)
-    violation_id = test_check_violation(rule_id, paragraph_id)
-    fix_text = test_suggest_fix(violation_id)
-    test_accept_fix(violation_id, fix_text)
+    # Use the first 2 rules to simulate multiple violations
+    violation_ids = []
+    for i in range(min(2, len(rule_records))):
+        rule_id = rule_records[i]["id"]
+        test_get_rule_by_id(rule_id)
+        test_update_rule_by_id(rule_id)
+        violation_id = test_check_violation(rule_id, paragraph_id)
+        violation_ids.append(violation_id)
+
+    # Suggest a fix using all the violations for that paragraph
+    fix_text = test_suggest_fix(violation_ids)
+
+    # Accept the suggested fix using one violation ID
+    test_accept_fix(violation_ids[0], fix_text)
+
+    # Test paragraph navigation
     test_paragraph_neighbors(paragraph_id)
 
-    # New general LLM query test
+    # General LLM query
     test_general_llm_query("What is the purpose of data encryption?")
+
 
 if __name__ == "__main__":
     print("🚧 Starting API test suite...")

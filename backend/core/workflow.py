@@ -9,8 +9,8 @@ def evaluate_paragraph(paragraph, rule_description):
     result = check_violation(paragraph, rule_description)
     return result
 
-def get_fix_suggestion(paragraph, rule_description):
-    return suggest_fix(paragraph, rule_description)
+def get_fix_suggestion(paragraph: str, violation_context: str) -> str:
+    return suggest_fix(paragraph, violation_context)
 
 def get_compliance_rules(document):
     return  generate_compliance_rules(document)

@@ -6,7 +6,7 @@ from sqlalchemy import asc
 from api.schemas import (
     UploadRequest, RuleCheckRequest, EditAcceptRequest,
     GenerateRulesRequest, GenerateRulesResponse, ParagraphWithNeighborsResponse, 
-    RuleUpdateRequest, LLMQueryRequest, LLMQueryResponse
+    RuleUpdateRequest, LLMQueryRequest, LLMQueryResponse, FixSuggestionsRequest
 )
 
 router = APIRouter()
@@ -90,10 +90,25 @@ def check_rule(data: RuleCheckRequest, db: Session = Depends(get_db)):
     return {"violation_id": v.id, "highlighted_text": result}
 
 @router.post("/suggest_fix")
-def fix_violation(violation_id: int, db: Session = Depends(get_db)):
-    v = db.query(models.Violation).filter(models.Violation.id == violation_id).first()
-    suggestion = workflow.get_fix_suggestion(v.highlighted_text, v.paragraph.violations[0].paragraph.content)
-    v.suggested_fix = suggestion
+def fix_violations(data: FixSuggestionsRequest, db: Session = Depends(get_db)):
+    if not data.violation_ids:
+        raise HTTPException(status_code=400, detail="No violation IDs provided")
+
+    violations = db.query(models.Violation).filter(models.Violation.id.in_(data.violation_ids)).all()
+    if not violations:
+        raise HTTPException(status_code=404, detail="No matching violations found")
+
+    # Assume all violations are for the same paragraph
+    paragraph = violations[0].paragraph
+    rule_texts = [v.highlighted_text for v in violations]
+
+    combined_prompt_context = "\n\n".join(rule_texts)
+    suggestion = workflow.get_fix_suggestion(paragraph.content, combined_prompt_context)
+
+    # Optional: update each violation with same suggestion
+    for v in violations:
+        v.suggested_fix = suggestion
+
     db.commit()
     return {"suggested_fix": suggestion}
 

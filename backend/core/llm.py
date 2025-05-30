@@ -138,7 +138,11 @@ def suggest_fix(text: str, rule: str) -> str:
     MODEL_NAME = os.getenv("MODEL_NAME") 
     OWUI_API_KEY = os.getenv("OWUI_API_KEY")
 
-    prompt = f"Given the following rule '{rule}', suggest an improved version of this text:\n\n{text}. Return only the improved version of the text, and nothing else."
+    prompt = f"""Given the following issues identified in a paragraph:\n\n{rule}
+                 Here is the original paragraph:{text}
+                 Rewrite the paragraph to address all the issues above. Return only the improved version of the paragraph. 
+             """
+
 
     payload = create_text_only_payload(prompt, MODEL_NAME)
 
