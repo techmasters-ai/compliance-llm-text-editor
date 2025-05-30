@@ -1,5 +1,8 @@
+First step is to add open webui API key. All LLM endpoints hit the open webui apis.
+Second step is to run bash manage.sh --start from the command lin
+
 Managmenet services:
-Fromn the top level director run the following bash command:
+From the top level director run the following bash command:
 
 manage.sh --start     # Start and build services
 manage.sh --stop      # Stop and clean everything
